@@ -6,189 +6,35 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import { Check, Edit, Eye, Tag, Search, Calendar, ArrowUpDown, Plus, X } from 'lucide-react';
 import { Badge } from '../components/ui/badge';
 import _ from 'lodash';
+import { getAllBlogPosts, type BlogPost } from '@/lib/blog-utils';
 
 const MarkdownBlogApp = () => {
-  // Demo blog posts
-  const [posts, setPosts] = useState([
-    {
-      id: '1',
-      title: 'Getting Started with Markdown Blogging',
-      content: `# Getting Started with Markdown Blogging
+  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    const loadPosts = () => {
+      try {
+        const allPosts = getAllBlogPosts();
+        setPosts(allPosts);
+      } catch (error) {
+        console.error('Error loading posts:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadPosts();
+  }, []);
 
-## Introduction
-
-Markdown is a lightweight markup language that you can use to add formatting elements to plaintext text documents. Created by John Gruber in 2004, Markdown is now one of the world's most popular markup languages.
-
-## Why Use Markdown for Blogging?
-
-- **Simplicity**: Focus on writing content, not formatting
-- **Portability**: Markdown files can be opened in any text editor
-- **Version Control**: Works perfectly with Git and GitHub
-- **Flexibility**: Easy to convert to HTML, PDF, and other formats
-
-## Basic Markdown Syntax
-
-### Headers
-
-\`\`\`
-# This is an H1
-## This is an H2
-### This is an H3
-\`\`\`
-
-### Emphasis
-
-\`\`\`
-*This text will be italic*
-_This will also be italic_
-
-**This text will be bold**
-__This will also be bold__
-\`\`\`
-
-### Lists
-
-\`\`\`
-- Item 1
-- Item 2
-  - Subitem 2.1
-  - Subitem 2.2
-\`\`\`
-
-## Setting Up Your Blog with GitHub Pages
-
-1. Create a GitHub repository
-2. Enable GitHub Pages in repository settings
-3. Organize your markdown files in a logical structure
-4. Use a static site generator like Jekyll, Hugo, or Next.js
-
-## Conclusion
-
-Markdown blogging combined with GitHub Pages provides a powerful, flexible, and free blogging solution that gives you complete control over your content.
-
-Happy blogging!`,
-      excerpt: 'Learn how to set up a blog using Markdown files and host it on GitHub Pages for free.',
-      date: '2025-03-10',
-      tags: ['markdown', 'github-pages', 'tutorial'],
-      author: 'Jane Doe'
-    },
-    {
-      id: '2',
-      title: 'Advanced Markdown Techniques for Technical Writers',
-      content: `# Advanced Markdown Techniques for Technical Writers
-
-## Beyond the Basics
-
-While Markdown is simple to learn, there are many advanced techniques that can make your technical documentation shine.
-
-## Code Blocks with Syntax Highlighting
-
-\`\`\`javascript
-function helloWorld() {
-  console.log("Hello, world!");
-}
-\`\`\`
-
-## Tables
-
-| Feature | Basic Markdown | Extended Markdown |
-|---------|----------------|-------------------|
-| Tables  | No             | Yes               |
-| Footnotes | No           | Yes               |
-| Definition Lists | No    | Yes               |
-
-## Diagrams with Mermaid
-
-Many Markdown processors now support Mermaid for creating diagrams:
-
-\`\`\`mermaid
-graph TD;
-    A-->B;
-    A-->C;
-    B-->D;
-    C-->D;
-\`\`\`
-
-## Math Equations with LaTeX
-
-$$E = mc^2$$
-
-## Organizing Your Technical Blog
-
-Consider organizing your technical blog with a clear structure:
-
-- Categories for broad topics
-- Tags for specific technologies
-- Series for multi-part tutorials
-
-## Conclusion
-
-By leveraging these advanced Markdown techniques, you can create rich, interactive technical documentation directly in your blog.`,
-      excerpt: 'Take your technical writing to the next level with advanced Markdown features like syntax highlighting, diagrams, and math equations.',
-      date: '2025-03-15',
-      tags: ['markdown', 'technical-writing', 'documentation'],
-      author: 'John Smith'
-    },
-    {
-      id: '3',
-      title: 'Building a Portfolio Website with GitHub Pages',
-      content: `# Building a Portfolio Website with GitHub Pages
-
-## Showcase Your Work for Free
-
-GitHub Pages offers a fantastic platform for developers to showcase their projects and skills without paying for hosting.
-
-## Setting Up Your Repository
-
-Start by creating a repository named \`username.github.io\`, where "username" is your GitHub username.
-
-## Choosing a Theme
-
-You can either:
-- Use a pre-built Jekyll theme
-- Create your own custom design
-- Use frameworks like Next.js or Gatsby
-
-## Essential Sections for Your Portfolio
-
-1. **About Me**: A brief introduction
-2. **Projects**: Showcase your best work
-3. **Skills**: Highlight your technical abilities
-4. **Contact**: How people can reach you
-
-## Adding Blog Functionality
-
-A blog section can demonstrate your expertise and thought process. Consider organizing it by:
-
-- Recent posts on the homepage
-- Category pages for different topics
-- An archive page for browsing by date
-
-## Optimizing for Discovery
-
-- Add proper metadata
-- Ensure mobile responsiveness
-- Include social sharing capabilities
-- Implement basic SEO best practices
-
-## Conclusion
-
-With GitHub Pages, you can create a professional portfolio that grows with your career, all while keeping your code and content in version control.`,
-      excerpt: 'Learn how to create a professional developer portfolio website hosted for free on GitHub Pages.',
-      date: '2025-03-17',
-      tags: ['github-pages', 'portfolio', 'web-development'],
-      author: 'Jane Doe'
-    }
-  ]);
-
-  const [activeBlog, setActiveBlog] = useState(null);
+  const [activeBlog, setActiveBlog] = useState<BlogPost | null>(null);
   const [filterTag, setFilterTag] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('date');
   const [sortOrder, setSortOrder] = useState('desc');
   const [isEditing, setIsEditing] = useState(false);
-  const [allTags, setAllTags] = useState([]);
-  const [editedPost, setEditedPost] = useState(null);
+  const [allTags, setAllTags] = useState<string[]>([]);
+  const [editedPost, setEditedPost] = useState<BlogPost | null>(null);
   const [newTagInput, setNewTagInput] = useState('');
 
   // Extract all unique tags
@@ -274,6 +120,18 @@ With GitHub Pages, you can create a professional portfolio that grows with your 
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
+
+  if (loading) {
+    return (
+      <div className="w-full max-w-6xl mx-auto p-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Loading blog posts...</CardTitle>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-6xl mx-auto p-4">
