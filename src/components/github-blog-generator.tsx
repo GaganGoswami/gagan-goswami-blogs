@@ -13,9 +13,9 @@ const MarkdownBlogApp = () => {
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    const loadPosts = () => {
+    const loadPosts = async () => {
       try {
-        const allPosts = getAllBlogPosts();
+        const allPosts = await getAllBlogPosts();
         setPosts(allPosts);
       } catch (error) {
         console.error('Error loading posts:', error);
