@@ -1,36 +1,30 @@
+import { BlogPost } from '@/types/blog';
+import { fetchBlogPosts } from './blog-service';
 
+export type { BlogPost };
 
-export interface BlogPost {
-  id: string;
-  title: string;
-  content: string;
-  excerpt: string;
-  date: string;
-  tags: string[];
-  author: string;
+export async function getAllBlogPosts(): Promise<BlogPost[]> {
+  try {
+    const posts = await fetchBlogPosts();
+    return posts.sort((a, b) => {
+      if (a.date < b.date) {
+        return 1;
+      } else {
+        return -1;
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching blog posts:', error);
+    return [];
+  }
 }
 
-export const BLOG_DATA: BlogPost[] = [
-  {
-    id: '1',
-    title: 'Getting Started with Markdown Blogging',
-    content: `# Getting Started with Markdown Blogging...`,
-    excerpt: 'Learn how to set up a blog using Markdown files and host it on GitHub Pages for free.',
-    date: '2025-03-10',
-    tags: ['markdown', 'github-pages', 'tutorial'],
-    author: 'Gagan Goswami'
-  },
-  {
-    id: '2',
-    title: 'Advanced Markdown Techniques',
-    content: `# Advanced Markdown Techniques...`,
-    excerpt: 'Take your technical writing to the next level with advanced Markdown features.',
-    date: '2025-03-15',
-    tags: ['markdown', 'technical-writing'],
-    author: 'Gagan Goswami'
+export async function getBlogPostById(id: string): Promise<BlogPost | undefined> {
+  try {
+    const posts = await getAllBlogPosts();
+    return posts.find(post => post.id === id);
+  } catch (error) {
+    console.error('Error fetching blog post:', error);
+    return undefined;
   }
-];
-
-export function getAllBlogPosts(): BlogPost[] {
-  return BLOG_DATA;
 }
